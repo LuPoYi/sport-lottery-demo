@@ -1,5 +1,11 @@
 .container {
   padding: 0 2rem;
+  /* background: url("../public/wfc.jpg"); */
+  background-repeat: no-repeat;
+  background-position-x: center;
+  /* background-color: rgba(45, 17, 37, 1); */
+  background-size: 100% auto;
+  /* color: white; */
 }
 
 .main {
