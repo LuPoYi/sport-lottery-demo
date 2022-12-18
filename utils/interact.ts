@@ -38,7 +38,7 @@ export const getRedPlayer = async () =>
 
 export const betBlue = async (amount: any, address: any) => {
   await betContract.methods
-    .betBlue(ethers.utils.parseEther(amount))
+    .betBlue(ethers.utils.parseUnits(amount, 6))
     .send({ from: address })
     .on("receipt", function () {
       console.log("Hi")
@@ -47,7 +47,7 @@ export const betBlue = async (amount: any, address: any) => {
 
 export const betRed = async (amount: any, address: any) => {
   await betContract.methods
-    .betRed(ethers.utils.parseEther(amount))
+    .betRed(ethers.utils.parseUnits(amount, 6))
     .send({ from: address })
     .on("receipt", function () {
       console.log("Hi")
@@ -55,7 +55,14 @@ export const betRed = async (amount: any, address: any) => {
 }
 
 export const approveToken = async (amount: any, address: any) => {
+  console.log(
+    "amount",
+    amount,
+    "address",
+    address,
+    ethers.utils.parseUnits(amount, 6)
+  )
   await tokenContract.methods
-    .approve(config.contractAddress, ethers.utils.parseEther(amount))
+    .approve(config.contractAddress, ethers.utils.parseUnits(amount, 6))
     .send({ from: address })
 }

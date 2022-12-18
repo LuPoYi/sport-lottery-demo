@@ -13,7 +13,6 @@ import {
   getBlueOdds,
   getBluePlayer,
   getEstimateMatchEndTime,
-  getMatchResultSubmitted,
   getOwner,
   getRedBetting,
   getRedOdds,
@@ -26,9 +25,9 @@ import styles from "../styles/Home.module.css"
 import { useWeb3React } from "@web3-react/core"
 
 export default function Home() {
-  const [blueBet, setBlueBet] = useState(1)
-  const [redBet, setRedBet] = useState(1)
-  const [winner, setWinner] = useState()
+  const [blueBet, setBlueBet] = useState(0.1)
+  const [redBet, setRedBet] = useState(0.1)
+
   const [gameInfo, setGameInfo] = useState({
     red: {
       player: [],
@@ -43,13 +42,10 @@ export default function Home() {
     bettingEndTime: "",
     bettingToken: "",
     estimateMatchEndTime: "",
-    matchResultSubmitted: "",
     owner: "",
-    winner: "",
   })
 
-  const { active, account, library, chainId, activate, deactivate } =
-    useWeb3React()
+  const { active, account, activate, deactivate } = useWeb3React()
   const handleConnectWalletOnClick = async () => {
     try {
       await activate(injected)
@@ -76,42 +72,39 @@ export default function Home() {
 
   useEffect(() => {
     const init = async () => {
-      setWinner(await getWinner())
+      try {
+        const blueBetting = ethers.utils.formatUnits(await getBlueBetting(), 6)
+        const blueOdds = ethers.utils.formatUnits(await getBlueOdds(), 18)
+        const bluePlayer = await getBluePlayer()
+        const redBetting = ethers.utils.formatUnits(await getRedBetting(), 6)
+        const redOdds = ethers.utils.formatUnits(await getRedOdds(), 18)
+        const redPlayer = await getRedPlayer()
+        const bettingEndTime = await getBettingEndTime()
+        const bettingToken = await getBettingToken()
+        const estimateMatchEndTime = await getEstimateMatchEndTime()
+        const owner = await getOwner()
+        const winner = await getWinner()
 
-      const blueBetting = ethers.utils.formatUnits(await getBlueBetting(), 18)
-      const blueOdds = ethers.utils.formatUnits(await getBlueOdds(), 18)
-      const bluePlayer = await getBluePlayer()
-      const redBetting = ethers.utils.formatUnits(await getRedBetting())
-      const redOdds = ethers.utils.formatUnits(await getRedOdds())
-      const redPlayer = await getRedPlayer()
-      const bettingEndTime = await getBettingEndTime()
-      const bettingToken = await getBettingToken()
-      const estimateMatchEndTime = await getEstimateMatchEndTime()
-      const matchResultSubmitted = await getMatchResultSubmitted()
-      const owner = await getOwner()
-      const winner = await getWinner()
+        setGameInfo({
+          blue: { betting: blueBetting, odds: blueOdds, player: bluePlayer },
+          red: {
+            betting: redBetting,
+            odds: redOdds,
+            player: redPlayer,
+          },
+          bettingEndTime: bettingEndTime,
+          bettingToken: bettingToken,
+          estimateMatchEndTime: estimateMatchEndTime,
 
-      setGameInfo({
-        blue: { betting: blueBetting, odds: blueOdds, player: bluePlayer },
-        red: {
-          betting: redBetting,
-          odds: redOdds,
-          player: redPlayer,
-        },
-        bettingEndTime: bettingEndTime,
-        bettingToken: bettingToken,
-        estimateMatchEndTime: estimateMatchEndTime,
-        matchResultSubmitted: matchResultSubmitted,
-        owner: owner,
-        winner: winner,
-      })
+          owner: owner,
+        })
+      } catch (error) {
+        console.error("error2", error)
+      }
     }
 
     init()
   }, [])
-
-  console.log("winnder", winner)
-  console.log("gameInfo", gameInfo)
 
   const franceIcon = () => {
     return <img src="/france.png" alt="france" width="20px" />
@@ -128,23 +121,23 @@ export default function Home() {
         <meta name="description" content="Sport Lottery Demo" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
+      <img className={styles.containerBg} src="/wfc.jpg" alt="" />
       <main className={styles.main}>
-        <div>
-          <h2>Sport Lottery Demo</h2>
+        <div className={styles.mainContent}>
+          <h1>2022 World Cup Demo</h1>
           {/* Connect Wallet */}
           <div>
             {active ? (
               <Button
-                variant="outlined"
+                variant="contained"
                 size="small"
                 onClick={handleDisconnectWalletOnClick}
               >
-                Disconnect Wallet
+                Disconnect {account}
               </Button>
             ) : (
               <Button
-                variant="outlined"
+                variant="contained"
                 size="small"
                 onClick={handleConnectWalletOnClick}
               >
@@ -155,82 +148,92 @@ export default function Home() {
         </div>
 
         {/* Main Function */}
-        <hr />
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            wordBreak: "break-all",
-          }}
-        >
-          <div className="red">
-            <h3>France</h3>
-            <p>betting: {gameInfo?.red?.betting}</p>
-            <p>odds: {gameInfo?.red?.odds}</p>
-            {/* <p>
-              player:
-              {gameInfo?.red?.player && JSON.stringify(gameInfo.red.player)}
-            </p> */}
-
-            <TextField
-              hiddenLabel
-              type="number"
-              size="small"
-              variant="filled"
-              InputLabelProps={{ shrink: true }}
-              onChange={(e) => setRedBet(Number(e?.target?.value))}
-            />
-            <Button
-              variant="contained"
-              startIcon={franceIcon()}
-              onClick={() => handleBetOnClick("red", redBet.toString())}
-            >
-              Bet {redBet} France
-            </Button>
-          </div>
-          <div className="blue">
-            <h3>Argentina</h3>
-            <p>betting: {gameInfo?.blue?.betting}</p>
-            <p>odds: {gameInfo?.blue?.odds}</p>
-            {/* <p>
-              player:
-              {gameInfo?.blue?.player && JSON.stringify(gameInfo.blue.player)}
-            </p> */}
-
-            <TextField
-              hiddenLabel
-              type="number"
-              size="small"
-              variant="filled"
-              InputLabelProps={{ shrink: true }}
-              onChange={(e) => setBlueBet(Number(e?.target?.value))}
-            />
-            <Button
-              variant="contained"
-              startIcon={argentinaIcon()}
-              onClick={() => handleBetOnClick("blue", blueBet.toString())}
-            >
-              Bet {blueBet} Argentina
-            </Button>
-          </div>
-        </div>
-        <div>
-          <p>bettingToken: {gameInfo?.bettingToken}</p>
+        <div className={styles.contractInfo}>
+          <h3>Contract Info:</h3>
+          <p>Network: Polygon</p>
           <p>
-            {`bettingEndTime: ${
+            Contract:{" "}
+            <a href="https://polygonscan.com/address/0xba688bf8e0dea1acd5d9746e8118da778767e3da">
+              0xba688bf8e0dea1acd5d9746e8118da778767e3da
+            </a>
+          </p>
+          <p>
+            USDC Token:
+            <a href="https://polygonscan.com/token/0x2791bca1f2de4661ed88a30c99a7a9449aa84174">
+              0x2791bca1f2de4661ed88a30c99a7a9449aa84174
+            </a>
+          </p>
+          <p>
+            {`投注結束時間: ${
               gameInfo?.bettingEndTime &&
               new Date(Number(gameInfo.bettingEndTime) * 1000)
             }`}
           </p>
           <p>
-            {`estimateMatchEndTime: ${
+            {`預計開獎時間: ${
               gameInfo?.estimateMatchEndTime &&
               new Date(Number(gameInfo.estimateMatchEndTime) * 1000)
             }`}
           </p>
-          <p>matchResultSubmitted: {gameInfo?.matchResultSubmitted}</p>
-          <p>owner: {gameInfo?.owner}</p>
-          <p>winner: {gameInfo?.winner && JSON.stringify(gameInfo?.winner)}</p>
+        </div>
+
+        <div className={styles.betInfo}>
+          <div className="red">
+            <h3>France</h3>
+            <p>Current Bet Pool: {gameInfo?.red?.betting} USDC</p>
+            <p>Odds: {gameInfo?.red?.odds}</p>
+
+            <TextField
+              hiddenLabel
+              type="number"
+              size="small"
+              variant="filled"
+              InputLabelProps={{ shrink: true }}
+              value={redBet}
+              style={{ minWidth: 120 }}
+              inputProps={{ step: "0.1", min: 0, max: 10 }}
+              onChange={(e) => setRedBet(Number(e?.target?.value))}
+            />
+            <Button
+              variant="contained"
+              startIcon={franceIcon()}
+              onClick={() =>
+                account && handleBetOnClick("red", redBet.toString())
+              }
+            >
+              Bet {redBet} USDC France
+            </Button>
+          </div>
+          <div className="blue">
+            <h3>Argentina</h3>
+            <p>Current Bet Pool: {gameInfo?.blue?.betting} USDC</p>
+            <p>Odds: {gameInfo?.blue?.odds}</p>
+
+            <TextField
+              hiddenLabel
+              type="number"
+              size="small"
+              variant="filled"
+              InputLabelProps={{ shrink: true }}
+              value={blueBet}
+              style={{ minWidth: 120 }}
+              inputProps={{
+                step: "0.1",
+                min: 0,
+                max: 10,
+              }}
+              onChange={(e) => setBlueBet(Number(e?.target?.value))}
+            />
+            <Button
+              variant="contained"
+              startIcon={argentinaIcon()}
+              onClick={() =>
+                account && handleBetOnClick("blue", blueBet.toString())
+              }
+            >
+              Bet {blueBet} USDC Argentina
+            </Button>
+          </div>
         </div>
       </main>
 
